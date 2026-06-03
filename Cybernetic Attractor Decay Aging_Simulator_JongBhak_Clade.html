@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<!-- saved from url=(0050)file:///C:/Users/Jong/Downloads/CAD_simulator.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cybernetic Attractor Decay — Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+<link href="./Cybernetic Attractor Decay Aging_Simulator_JongBhak_Clade_files/css2" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f4f1ea; --panel:#fbfaf6; --ink:#23272e; --muted:#6b7280;
+    --line:#2b3a4a; --grid:#e2ddd2; --hair:#d7d1c4;
+    --blue:#3f6f9f; --bluefill:#a8c6e2; --red:#bf4b45; --redfill:#e7b7b3;
+    --accent:#3f6f9f;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:"Spectral",Georgia,serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px;margin:0 auto;padding:26px 22px 40px}
+  header{border-bottom:1px solid var(--hair);padding-bottom:14px;margin-bottom:18px}
+  h1{font-size:25px;font-weight:600;margin:0 0 4px;letter-spacing:.1px}
+  h1 .tag{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);
+    border:1px solid var(--hair);border-radius:4px;padding:2px 7px;vertical-align:middle;margin-left:8px;font-weight:500}
+  .sub{color:var(--muted);font-size:14.5px;max-width:760px;line-height:1.45}
+  .grid{display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start}
+  @media(max-width:860px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--hair);border-radius:10px}
+  .stage{padding:6px 6px 2px;position:relative}
+  canvas{width:100%;display:block;border-radius:8px}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-family:"IBM Plex Mono",monospace;
+    font-size:11.5px;color:var(--muted);padding:4px 12px 12px}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .sw{width:13px;height:9px;border-radius:2px;display:inline-block}
+  .controls{padding:16px 16px 18px}
+  .controls h2{font-size:12px;font-family:"IBM Plex Mono",monospace;font-weight:600;
+    text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:0 0 12px}
+  .ctl{margin-bottom:15px}
+  .ctl label{display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:6px}
+  .ctl label b{font-family:"IBM Plex Mono",monospace;font-weight:500;color:var(--accent)}
+  input[type=range]{width:100%;accent-color:var(--accent);height:4px}
+  .row{display:flex;gap:8px;margin-top:4px}
+  button{font-family:"IBM Plex Mono",monospace;font-size:12.5px;cursor:pointer;
+    border:1px solid var(--hair);background:#fff;color:var(--ink);border-radius:7px;padding:8px 10px;flex:1;transition:.15s}
+  button:hover{border-color:var(--accent);color:var(--accent)}
+  button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  button.primary:hover{filter:brightness(1.08);color:#fff}
+  .quick{display:flex;gap:8px;margin-bottom:16px}
+  .quick button{padding:7px 8px}
+  .metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+  .metric{border:1px solid var(--hair);border-radius:8px;padding:9px 11px;background:#fff}
+  .metric .k{font-size:11px;color:var(--muted);font-family:"IBM Plex Mono",monospace}
+  .metric .v{font-size:20px;font-family:"IBM Plex Mono",monospace;font-weight:600;margin-top:2px}
+  .metric .v small{font-size:12px;color:var(--muted);font-weight:400}
+  .bar{height:4px;border-radius:3px;background:var(--grid);margin-top:7px;overflow:hidden}
+  .bar i{display:block;height:100%;background:var(--accent)}
+  .metric.off .v{color:var(--red)} .metric.off .bar i{background:var(--red)}
+  .interp{font-size:13.5px;line-height:1.5;color:var(--ink);background:#fff;border:1px solid var(--hair);
+    border-left:3px solid var(--accent);border-radius:6px;padding:10px 12px;margin-top:14px;min-height:46px}
+  .opts{display:flex;gap:14px;font-size:13px;color:var(--muted);margin-top:6px;flex-wrap:wrap}
+  .opts label{display:inline-flex;gap:6px;align-items:center;cursor:pointer}
+  footer{margin-top:22px;border-top:1px solid var(--hair);padding-top:14px;color:var(--muted);
+    font-size:12.5px;line-height:1.55;font-family:"IBM Plex Mono",monospace}
+  footer b{color:var(--ink)}
+  .eq{font-family:"IBM Plex Mono",monospace}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Cybernetic Attractor Decay <span class="tag">interactive model</span></h1>
+    <div class="sub">A regulatory state sits in a quasi-potential well around the attractor <i>A</i>.
+      Drag <b>biological age</b> to flatten and narrow the basin: recovery rate <i>r</i>, basin width <i>b</i>,
+      and state precision <i>p</i> all fall, so the state density spills past the basin boundary as off-manifold occupancy Ω.</div>
+  </header>
+
+  <div class="grid">
+    <div>
+      <div class="card stage">
+        <canvas id="cv" width="977" height="586" style="height: 469px;"></canvas>
+        <div class="legend">
+          <span><i class="sw" style="background:var(--line)"></i> quasi-potential U(s)</span>
+          <span><i class="sw" style="background:var(--bluefill)"></i> on-manifold density ρ(s)</span>
+          <span><i class="sw" style="background:var(--redfill)"></i> off-manifold tail (Ω)</span>
+          <span><i class="sw" style="background:var(--blue);border-radius:50%;width:9px;height:9px"></i> state walkers</span>
+        </div>
+      </div>
+      <div class="interp" id="interp">The basin is softening. Recovery slows and the state begins to wander; early off-manifold drift accumulates.</div>
+    </div>
+
+    <div class="card controls">
+      <h2>Controls</h2>
+      <div class="quick">
+        <button id="bYoung">Young</button>
+        <button id="bMid">Mid-life</button>
+        <button id="bAged">Aged</button>
+      </div>
+
+      <div class="ctl">
+        <label>Biological age <b><span id="ageV">0</span></b></label>
+        <input type="range" id="age" min="0" max="100" value="0">
+      </div>
+      <div class="ctl">
+        <label>Regulatory noise D <b><span id="noiseV">0.22</span></b></label>
+        <input type="range" id="noise" min="5" max="60" value="22">
+      </div>
+
+      <div class="row">
+        <button id="run" class="">⏸ Pause walkers</button>
+        <button id="reset">Reset</button>
+      </div>
+      <div class="opts">
+        <label><input type="checkbox" id="showDen" checked=""> density</label>
+        <label><input type="checkbox" id="showPar" checked=""> walkers</label>
+        <label>N <select id="npart" style="font-family:inherit"><option>200</option><option selected="">400</option><option>800</option></select></label>
+      </div>
+
+      <h2 style="margin-top:20px">Live readouts</h2>
+      <div class="metrics">
+        <div class="metric"><div class="k">recovery rate r</div><div class="v" id="mr">0.86</div><div class="bar"><i id="brR" style="width: 100%;"></i></div></div>
+        <div class="metric"><div class="k">basin width b</div><div class="v" id="mb">1.53</div><div class="bar"><i id="brB" style="width: 100%;"></i></div></div>
+        <div class="metric"><div class="k">precision p = 1/σ²</div><div class="v" id="mp">1.75</div><div class="bar"><i id="brP" style="width: 100%;"></i></div></div>
+        <div class="metric off"><div class="k">off-manifold Ω</div><div class="v" id="mo">5.1<small> %</small> <small>(9% sim)</small></div><div class="bar"><i id="brO" style="width: 8.56865%;"></i></div></div>
+        <div class="metric off" style="grid-column:1 / span 2"><div class="k">gerotype ratio X<sub>nr</sub> / X<sub>req</sub></div><div class="v" id="mx">0.868</div><div class="bar"><i id="brX" style="width: 28.9267%;"></i></div></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <b>Model.</b> Quasi-potential U(s)=H·(1−e^(−s²/2w²)); overdamped Langevin ṡ=−U′(s)+√(2D)·ξ(t).
+    r = U″(0) = H/w²; basin boundary b = √2·w; p = 1/Var(s); Ω = P(|s|&gt;b) = ∫_{|s|&gt;b} ρ ds with ρ ∝ e^(−U/D);
+    X<sub>nr</sub>/X<sub>req</sub> = E[s²·𝟙_{off}] / E[s²·𝟙_{on}] (1-D projection proxy). Aging maps to H↓, w↓.
+    <b>Schematic:</b> a single-well confining form is used for numerical stability; the qualitative claim (r↓,b↓,p↓ ⇒ Ω↑) is form-independent.
+  </footer>
+</div>
+
+<script>
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+const S=3.4, NG=520;                 // domain half-width, grid points
+const Hy=1.0, wy=1.08, Ha=0.16, wa=0.74;   // young/aged endpoints
+let age=0, D=0.22, running=false, parts=[], showDen=true, showPar=true, refPeak=null;
+
+function params(a){ const t=a/100; return {H:Hy+t*(Ha-Hy), w:wy+t*(wa-wy)}; }
+function U(s,H,w){ return H*(1-Math.exp(-s*s/(2*w*w))); }
+function Up(s,H,w){ return H*(s/(w*w))*Math.exp(-s*s/(2*w*w)); }
+
+// numeric stationary metrics on a grid
+function metrics(a,D){
+  const {H,w}=params(a), b=Math.SQRT2*w, ds=2*S/(NG-1);
+  let Z=0, peak=0; const rho=new Float64Array(NG), xs=new Float64Array(NG);
+  for(let i=0;i<NG;i++){ const s=-S+i*ds; xs[i]=s; const r=Math.exp(-U(s,H,w)/D); rho[i]=r; Z+=r*ds; if(r>peak)peak=r; }
+  let mOff=0, sOff=0, sOn=0, varAll=0;
+  for(let i=0;i<NG;i++){ const s=xs[i], p=rho[i]/Z; const off=Math.abs(s)>b;
+    if(off){ mOff+=p*ds; sOff+=s*s*p*ds; } else { sOn+=s*s*p*ds; }
+    varAll+=s*s*p*ds; }
+  return {H,w,b, r:H/(w*w), prec:1/Math.max(varAll,1e-9),
+          Omega:mOff, ratio:sOff/Math.max(sOn,1e-9), peakPdf:peak/Z};
+}
+
+function gauss(){ let u=0,v=0; while(!u)u=Math.random(); while(!v)v=Math.random();
+  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+function seed(n){ parts=[]; const {w}=params(age); for(let i=0;i<n;i++) parts.push((Math.random()-.5)*0.6*w); }
+function step(){ const {H,w}=params(age), dt=0.012, sub=4;
+  for(let k=0;k<parts.length;k++){ let s=parts[k];
+    for(let j=0;j<sub;j++){ s += -Up(s,H,w)*dt + Math.sqrt(2*D*dt)*gauss();
+      if(s>S){s=2*S-s;} if(s<-S){s=-2*S-s;} }
+    parts[k]=s; } }
+
+// ---------- drawing ----------
+function resize(){ const w=cv.clientWidth, h=Math.round(w*0.60), dpr=devicePixelRatio||1;
+  cv.style.height=h+'px'; cv.width=w*dpr; cv.height=h*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); }
+function draw(){
+  const W=cv.clientWidth, H=cv.clientHeight;
+  ctx.clearRect(0,0,W,H);
+  const padL=58, padR=18, padT=20, padB=42, pw=W-padL-padR, ph=H-padT-padB, base=padT+ph;
+  const Uscale=Hy*1.12;
+  const m=metrics(age,D);
+  if(refPeak===null) refPeak=metrics(0,0.22).peakPdf;
+  const X=s=>padL+(s+S)/(2*S)*pw;
+  const YU=u=>base-(u/Uscale)*ph*0.92;
+  const denH=0.50*ph;
+  const YD=pdf=>base-(pdf/refPeak)*denH;
+
+  // grid
+  ctx.strokeStyle='#e2ddd2'; ctx.lineWidth=1;
+  for(let g=0;g<=4;g++){ const yy=padT+g*ph/4; ctx.beginPath();ctx.moveTo(padL,yy);ctx.lineTo(padL+pw,yy);ctx.stroke(); }
+  // baseline + axes
+  ctx.strokeStyle='#cbc6ba'; ctx.beginPath();ctx.moveTo(padL,base);ctx.lineTo(padL+pw,base);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(padL,padT);ctx.lineTo(padL,base);ctx.stroke();
+
+  // basin boundary dashed verticals
+  ctx.setLineDash([4,4]); ctx.strokeStyle='#aab4be';
+  [-m.b,m.b].forEach(bb=>{ ctx.beginPath();ctx.moveTo(X(bb),padT+4);ctx.lineTo(X(bb),base);ctx.stroke(); });
+  ctx.setLineDash([]);
+
+  const {H:HH,w:ww}=m;
+  // density fill (sampled)
+  if(showDen){
+    const N=260; let pts=[];
+    for(let i=0;i<=N;i++){ const s=-S+i*2*S/N; const pdf=Math.exp(-U(s,HH,ww)/D); pts.push([s,pdf]); }
+    // normalize to pdf (approx using grid Z): scale by integral
+    let Z=0,ds=2*S/N; pts.forEach(p=>Z+=p[1]*ds); pts.forEach(p=>p[1]/=Z);
+    const segs=[[pts.filter(p=>Math.abs(p[0])<=m.b),'on'],
+                [pts.filter(p=>p[0]<-m.b),'off'],[pts.filter(p=>p[0]>m.b),'off']];
+    segs.forEach(([seg,kind])=>{ if(seg.length<2)return;
+      ctx.beginPath(); ctx.moveTo(X(seg[0][0]),base);
+      seg.forEach(p=>ctx.lineTo(X(p[0]),YD(p[1]))); ctx.lineTo(X(seg[seg.length-1][0]),base); ctx.closePath();
+      ctx.fillStyle = kind==='on'? 'rgba(168,198,226,.9)':'rgba(231,183,179,.92)'; ctx.fill(); });
+    // outline
+    ctx.beginPath(); pts.forEach((p,i)=> i?ctx.lineTo(X(p[0]),YD(p[1])):ctx.moveTo(X(p[0]),YD(p[1])));
+    ctx.strokeStyle='#5b8bbf'; ctx.lineWidth=1.2; ctx.stroke();
+  }
+  // walkers
+  if(showPar && parts.length){
+    for(const s of parts){ const off=Math.abs(s)>m.b;
+      ctx.beginPath(); ctx.arc(X(s), base-6-Math.random()*5, 2.0, 0, 7);
+      ctx.fillStyle = off? 'rgba(191,75,69,.85)':'rgba(63,111,159,.7)'; ctx.fill(); }
+  }
+  // potential curve
+  ctx.beginPath();
+  for(let i=0;i<=300;i++){ const s=-S+i*2*S/300; const x=X(s), y=YU(U(s,HH,ww)); i?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+  ctx.strokeStyle='#2b3a4a'; ctx.lineWidth=2.6; ctx.lineJoin='round'; ctx.stroke();
+
+  // attractor A
+  ctx.fillStyle='#23272e'; ctx.beginPath();ctx.arc(X(0),YU(0),4,0,7);ctx.fill();
+  ctx.font='italic 15px Spectral, serif'; ctx.fillText('A',X(0)+8,YU(0)-6);
+
+  // basin width arrow
+  const yb=padT+9; ctx.strokeStyle='#6b7280'; ctx.lineWidth=1.3;
+  arrow(X(-m.b),yb,X(m.b),yb);
+  ctx.fillStyle='#23272e'; ctx.font='13px Spectral, serif'; ctx.textAlign='center';
+  ctx.fillText('basin width b',X(0),yb-5); ctx.textAlign='left';
+
+  // axis labels
+  ctx.fillStyle='#6b7280'; ctx.font='12px IBM Plex Mono, monospace';
+  ctx.save(); ctx.translate(16,padT+ph/2); ctx.rotate(-Math.PI/2);
+  ctx.textAlign='center'; ctx.fillText('quasi-potential U(s)',0,0); ctx.restore();
+  ctx.textAlign='center'; ctx.fillText('regulatory state  s',padL+pw/2,H-12); ctx.textAlign='left';
+
+  return m;
+}
+function arrow(x1,y,x2,yy){ ctx.beginPath();ctx.moveTo(x1,y);ctx.lineTo(x2,yy);ctx.stroke();
+  const h=4; [[x1,1],[x2,-1]].forEach(([x,d])=>{ ctx.beginPath();ctx.moveTo(x,y);
+    ctx.lineTo(x+d*h*1.6,y-h);ctx.lineTo(x+d*h*1.6,y+h);ctx.closePath();ctx.fillStyle='#6b7280';ctx.fill();}); }
+
+function setMetrics(m){
+  const empOff = (running&&parts.length)? parts.filter(s=>Math.abs(s)>m.b).length/parts.length : null;
+  document.getElementById('mr').innerHTML = m.r.toFixed(2);
+  document.getElementById('mb').innerHTML = m.b.toFixed(2);
+  document.getElementById('mp').innerHTML = m.prec.toFixed(2);
+  document.getElementById('mo').innerHTML = (m.Omega*100).toFixed(1)+'<small> %</small>'+
+     (empOff!==null? ' <small>('+(empOff*100).toFixed(0)+'% sim)</small>':'');
+  document.getElementById('mx').innerHTML = m.ratio.toFixed(3);
+  const set=(id,frac)=>document.getElementById(id).style.width=Math.max(0,Math.min(1,frac))*100+'%';
+  set('brR',m.r/(Hy/(wy*wy))); set('brB',m.b/(Math.SQRT2*wy));
+  set('brP',m.prec/ metrics(0,0.22).prec ); set('brO',m.Omega/0.6); set('brX',Math.min(1,m.ratio/3));
+  let msg;
+  if(m.Omega<0.05) msg='Regulatory state is tightly contained near A: high requisite variety, fast recovery — a gerostatic regime.';
+  else if(m.Omega<0.20) msg='The basin is softening. Recovery slows and the state begins to wander; early off-manifold drift accumulates.';
+  else msg='The attractor has decayed: shallow, narrow basin with large off-manifold occupancy — non-requisite variety dominates the gerotype.';
+  document.getElementById('interp').textContent=msg;
+}
+
+let last=0;
+function loop(t){ if(running){ if(t-last>16){ step(); last=t; } } const m=draw(); setMetrics(m); requestAnimationFrame(loop); }
+
+// ---------- wiring ----------
+const ageEl=document.getElementById('age'), noiseEl=document.getElementById('noise');
+ageEl.oninput=e=>{ age=+e.target.value; document.getElementById('ageV').textContent=age; };
+noiseEl.oninput=e=>{ D=+e.target.value/100; document.getElementById('noiseV').textContent=D.toFixed(2); };
+document.getElementById('run').onclick=function(){ running=!running;
+  if(running && !parts.length) seed(+document.getElementById('npart').value);
+  this.textContent= running? '⏸ Pause walkers':'▶ Run walkers'; this.classList.toggle('primary', !running); };
+document.getElementById('reset').onclick=()=>{ seed(+document.getElementById('npart').value); };
+document.getElementById('npart').onchange=()=>{ if(parts.length) seed(+document.getElementById('npart').value); };
+document.getElementById('showDen').onchange=e=>showDen=e.target.checked;
+document.getElementById('showPar').onchange=e=>showPar=e.target.checked;
+function quick(a){ age=a; ageEl.value=a; document.getElementById('ageV').textContent=a; if(parts.length) seed(+document.getElementById('npart').value); }
+document.getElementById('bYoung').onclick=()=>quick(0);
+document.getElementById('bMid').onclick=()=>quick(55);
+document.getElementById('bAged').onclick=()=>quick(100);
+
+window.addEventListener('resize',resize);
+resize(); refPeak=metrics(0,0.22).peakPdf; requestAnimationFrame(loop);
+</script>
+
+
+</body></html>
